@@ -20,6 +20,7 @@ import {
   Map,
   PenLine,
   RotateCcw,
+  ShieldCheck,
   Sparkles,
   Target,
 } from "lucide-react";
@@ -38,6 +39,22 @@ type Pathway = {
   transferable: string;
   criteria: { id: string; label: string; detail: string; weight: string }[];
   nextMove: string;
+};
+
+type ResearchTopic = {
+  id: string;
+  code: string;
+  title: string;
+  subtitle: string;
+  lane: "anchor" | "hybrid" | "ambitious" | "applied" | "reliable";
+  icon: typeof FlaskConical;
+  score: string;
+  fit: string;
+  pitch: string;
+  minimumScope: string;
+  market: string;
+  risk: string;
+  ask: string;
 };
 
 const PATHWAYS: Pathway[] = [
@@ -145,6 +162,84 @@ const PATHWAYS: Pathway[] = [
   },
 ];
 
+const RESEARCH_TOPICS: ResearchTopic[] = [
+  {
+    id: "t1",
+    code: "T1",
+    title: "Adaptive Riesz–Caputo FEM",
+    subtitle: "المسار الآمن والأقوى إشرافيًا",
+    lane: "anchor",
+    icon: BookOpen,
+    score: "4.35",
+    fit: "ملاءمة إشراف مباشرة",
+    pitch: "طريقة عناصر محددة تكيفية لمعادلة انتشار كسرية ثنائية البعد من نوع Riesz–Caputo، مع تقدير خطأ بعدي يقارن الشبكة التكيفية بالشبكة الموحدة عند نفس كلفة الحساب.",
+    minimumScope: "PDE واحدة + benchmark أو manufactured solution + adaptive mesh + منحنيات error–DoF وruntime.",
+    market: "Numerical PDEs · FEM · error estimation · scientific computing",
+    risk: "الخطر هو تكرار ورقة منشورة بتغيير اسم المعادلة فقط؛ يجب تثبيت إضافة مثل non-smooth data أو variable coefficient أو goal-oriented estimator.",
+    ask: "هل يمكن أن نأخذ حالة ثنائية البعد أو معاملات متغيرة، ونبني error estimator نقارن به refinement التكيفي مع الشبكة الموحدة؟",
+  },
+  {
+    id: "t2",
+    code: "T2",
+    title: "Inverse Fractional PDE + PINN",
+    subtitle: "أفضل توازن بين AI وخط الأستاذ",
+    lane: "hybrid",
+    icon: BrainCircuit,
+    score: "4.25",
+    fit: "FEM قوي + ML امتداد منضبط",
+    pitch: "تحديد عكسي لرتبة كسرية أو معامل انتشار من قياسات محدودة وضوضائية، باستخدام adaptive FEM كمرجع عددي ثم مقارنته بـfractional PINN واحد.",
+    minimumScope: "مسألة انتشار واحدة + معامل مجهول واحد + بيانات صناعية من FEM + 2–3 مستويات ضوضاء + قياس parameter/solution error.",
+    market: "Scientific ML · inverse problems · model calibration · AI for Engineering",
+    risk: "المؤثر الكسري غير محلي؛ لا تبدأ بثلاثة مؤثرات أو بيانات حقيقية أو network كبير. اجعل نجاح الرسالة قائمًا حتى لو بقي الـPINN امتدادًا.",
+    ask: "هل يمكن أن نصوغ مسألة inverse صغيرة في fractional diffusion، ونستخدم adaptive FEM كمرجع ثم نقارن fractional PINN بالخطأ والضوضاء؟",
+  },
+  {
+    id: "t3",
+    code: "T3",
+    title: "Uncertainty-aware Neural Surrogate",
+    subtitle: "خيار طموح للمحاكاة السريعة الموثوقة",
+    lane: "ambitious",
+    icon: Gauge,
+    score: "3.70",
+    fit: "PDE مناسب، UQ/Operator Learning متقدم",
+    pitch: "بديل عصبي سريع لعائلة صغيرة من مسائل fractional heat أو diffusion، مع تقدير عدم يقين يحدد الحالات التي تحتاج FEM إضافيًا.",
+    minimumScope: "PDE واحدة ذات 2–3 معاملات + بيانات FEM لعدد محدود من الحالات + DeepONet أو FNO واحد + اختبار خارج نطاق التدريب.",
+    market: "operator learning · surrogate modeling · UQ · accelerated simulation",
+    risk: "عالي المخاطرة للماجستير إذا بدأ مباشرة بـFNO أو digital twin؛ يحتاج data generation وحوسبة وتقييم uncertainty calibration.",
+    ask: "هل ترى أن هذا يصلح كامتداد بعد بناء solver FEM موثوق، أم أنه يحتاج توجيهًا أو تعاونًا إضافيًا في ML؟",
+  },
+  {
+    id: "t4",
+    code: "T4",
+    title: "Fractional Solar Heat + ROM",
+    subtitle: "مسار تطبيقي في الحرارة والطاقة الشمسية",
+    lane: "applied",
+    icon: FlaskConical,
+    score: "3.80",
+    fit: "متصل بأعمال الحرارة والمجمعات الشمسية",
+    pitch: "نموذج انتقال حرارة عابر من نوع كسري في مجمع حراري شمسي، مع adaptive FEM أو reduced-order model لقياس الدقة والزمن.",
+    minimumScope: "نموذج حراري 2D واحد + حالة transient واحدة + FEM مرجعي + adaptive mesh أو POD/ROM بسيط + error/runtime.",
+    market: "renewable energy simulation · thermal modeling · computational engineering",
+    risk: "لا تجعل digital twin عنوانًا أوليًا. تحتاج معادلات ومعاملات أو benchmark واضحًا قبل الالتزام، وقد يفيد وجود متعاون في الطاقة الحرارية.",
+    ask: "هل يوجد نموذج حراري أو benchmark أو تعاون قائم يمكن أن يجعل هذا التطبيق قابلًا للتحقق بدل أن يبقى عنوانًا عامًا؟",
+  },
+  {
+    id: "t5",
+    code: "T5",
+    title: "Stochastic Fractional Adaptive FEM",
+    subtitle: "المسار المتين للموثوقية الهندسية",
+    lane: "reliable",
+    icon: ShieldCheck,
+    score: "4.00",
+    fit: "يربط fractional FEM بالـstochastic FEM",
+    pitch: "عناصر محددة تكيفية لمعادلة انتشار كسرية ذات معاملات مادية عشوائية، مع قياس كيف يتوزع الخطأ بين الشبكة وتمثيل عدم اليقين.",
+    minimumScope: "PDE واحدة + coefficient عشوائي واحد أو اثنان + adaptive FEM + Monte Carlo أو stochastic collocation بسيط + error–cost curves.",
+    market: "reliable simulation · uncertainty quantification · stochastic FEM",
+    risk: "لا تجمع fractional PDE وadaptive FEM وUQ نظريًا كاملًا. أبقه على quantity of interest واحدة وcoefficient عشوائي بسيط.",
+    ask: "هل يمكن أن نربط أعمال stochastic FEM بالأعمال الحديثة في adaptive fractional FEM، ونقيس توزيع الجهد بين mesh refinement وعدد العينات؟",
+  },
+];
+
 const STORAGE_KEY = "atlas-output-measurement-v1";
 
 function scoreForPath(path: Pathway, checked: Record<string, boolean>) {
@@ -176,16 +271,26 @@ export default function Home() {
   const [selectedId, setSelectedId] = useState<PathId>("math");
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [selectedTopicId, setSelectedTopicId] = useState("t1");
+  const [meetingTopics, setMeetingTopics] = useState<Record<string, boolean>>({});
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        const parsed = JSON.parse(saved) as { selectedId?: PathId; checked?: Record<string, boolean>; notes?: Record<string, string> };
+        const parsed = JSON.parse(saved) as {
+          selectedId?: PathId;
+          checked?: Record<string, boolean>;
+          notes?: Record<string, string>;
+          selectedTopicId?: string;
+          meetingTopics?: Record<string, boolean>;
+        };
         if (parsed.selectedId) setSelectedId(parsed.selectedId);
         if (parsed.checked) setChecked(parsed.checked);
         if (parsed.notes) setNotes(parsed.notes);
+        if (parsed.selectedTopicId) setSelectedTopicId(parsed.selectedTopicId);
+        if (parsed.meetingTopics) setMeetingTopics(parsed.meetingTopics);
       }
     } catch {
       // If local persistence is unavailable, the dashboard continues as an in-memory workspace.
@@ -196,8 +301,8 @@ export default function Home() {
 
   useEffect(() => {
     if (!hydrated) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ selectedId, checked, notes }));
-  }, [selectedId, checked, notes, hydrated]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ selectedId, checked, notes, selectedTopicId, meetingTopics }));
+  }, [selectedId, checked, notes, selectedTopicId, meetingTopics, hydrated]);
 
   const selected = PATHWAYS.find((path) => path.id === selectedId) ?? PATHWAYS[0];
   const selectedScore = scoreForPath(selected, checked);
@@ -207,6 +312,8 @@ export default function Home() {
   const overall = Math.round((completedCount / allCount) * 100);
   const nextCriterion = selected.criteria.find((item) => !checked[`${selected.id}.${item.id}`]);
   const activePaths = PATHWAYS.filter((path) => scoreForPath(path, checked) > 0).length;
+  const selectedTopic = RESEARCH_TOPICS.find((topic) => topic.id === selectedTopicId) ?? RESEARCH_TOPICS[0];
+  const selectedMeetingCount = Object.values(meetingTopics).filter(Boolean).length;
 
   const measure = useMemo(
     () => [
@@ -226,6 +333,12 @@ export default function Home() {
     setChecked({});
     setNotes({});
     setSelectedId("math");
+    setMeetingTopics({});
+    setSelectedTopicId("t1");
+  };
+
+  const toggleMeetingTopic = (topicId: string) => {
+    setMeetingTopics((current) => ({ ...current, [topicId]: !current[topicId] }));
   };
 
   return (
@@ -454,6 +567,73 @@ export default function Home() {
             <article><span>02</span><h4>ضع حدًا أدنى</h4><p>اجعل أول نسخة صغيرة بما يكفي لتنتهي، لكنها حقيقية بما يكفي لأن يعرضها شخص آخر.</p></article>
             <article><span>03</span><h4>وثّق الدليل</h4><p>رابط، README، PDF، رسم، أو case study. ما لا يمكن عرضه لا يُحسب جاهزية كاملة.</p></article>
             <article><span>04</span><h4>راجع قابلية النقل</h4><p>اسأل: هل يخدم هذا المخرج أكثر من فرع؟ إن لم يفعل، فهل يبرر وقته؟</p></article>
+          </div>
+        </section>
+
+        <section className="research-topics-section" id="research-topics">
+          <div className="section-heading research-heading">
+            <div>
+              <p className="eyebrow"><img src="/manus-storage/atlas-route-mark_d831064a.png" alt="" className="section-mark" /> خريطة اجتماع الإشراف</p>
+              <h3>خمسة موضوعات: اعرض ثلاثة، واترك اثنين كبدائل واعية.</h3>
+            </div>
+            <div className="meeting-count"><Check size={14} /> اخترت للنقاش: <b>{selectedMeetingCount}/5</b></div>
+          </div>
+
+          <div className="research-intro">
+            <span className="research-intro-icon"><Target size={18} /></span>
+            <span className="route-key" aria-hidden="true"><i /><i /><i /></span>
+            <p>لا تذهب بعنوان واسع مثل «AI for Engineering». اذهب بسؤال PDE، baseline عددي، مقياس خطأ، وامتداد واحد فقط. <b>الترتيب المقترح للاجتماع: T1 ثم T2 ثم T4.</b></p>
+          </div>
+
+          <div className="topic-grid">
+            {RESEARCH_TOPICS.map((topic, index) => {
+              const Icon = topic.icon;
+              const inMeeting = Boolean(meetingTopics[topic.id]);
+              return (
+                <button
+                  key={topic.id}
+                  type="button"
+                  className={`topic-card ${topic.lane} ${selectedTopic.id === topic.id ? "is-selected" : ""}`}
+                  onClick={() => setSelectedTopicId(topic.id)}
+                >
+                  <span className="topic-order">{String(index + 1).padStart(2, "0")}</span>
+                  <span className="topic-code"><Icon size={15} /> {topic.code}</span>
+                  <strong>{topic.title}</strong>
+                  <small>{topic.subtitle}</small>
+                  <span className="topic-meta"><i /> {topic.fit}</span>
+                  <span className="topic-score-badge">{topic.score} <small>/ 5</small></span>
+                  {inMeeting && <span className="selected-meeting"><Check size={12} /> للاجتماع</span>}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className={`topic-workbench ${selectedTopic.lane}`}>
+            <div className="topic-workbench-title">
+              <span className="topic-large-code">{selectedTopic.code}</span>
+              <div>
+                <p className="eyebrow">موضوع نشط / {selectedTopic.fit}</p>
+                <h4>{selectedTopic.title}</h4>
+              </div>
+              <div className="topic-score-readout"><strong>{selectedTopic.score}</strong><span>التقييم<br />المرجح / 5</span></div>
+            </div>
+            <div className="topic-route-legend"><i className="route-base-dot" /> قاعدة إشراف <span /> <i className="route-evidence-dot" /> دليل قابل للقياس <span /> <i className="route-decision-dot" /> امتداد/قرار</div>
+
+            <div className="topic-workbench-grid">
+              <div className="topic-pitch">
+                <p className="eyebrow">فكرة البحث</p>
+                <p>{selectedTopic.pitch}</p>
+                <div className="topic-minimum"><FlaskConical size={16} /><span><b>أصغر نطاق صالح:</b> {selectedTopic.minimumScope}</span></div>
+                <div className="topic-market"><Layers3 size={15} /><span><b>ما يمكن تسويقه:</b> {selectedTopic.market}</span></div>
+              </div>
+              <div className="topic-meeting-panel">
+                <div className="topic-risk"><CircleHelp size={16} /><div><b>خطر يجب أن تذكره لنفسك</b><p>{selectedTopic.risk}</p></div></div>
+                <div className="topic-question"><span>السؤال الذي تقوله للدكتور</span><blockquote>«{selectedTopic.ask}»</blockquote></div>
+                <button type="button" className={`meeting-toggle ${meetingTopics[selectedTopic.id] ? "is-saved" : ""}`} onClick={() => toggleMeetingTopic(selectedTopic.id)}>
+                  {meetingTopics[selectedTopic.id] ? <><Check size={15} /> أضيف إلى نقاط الاجتماع</> : <><Target size={15} /> أضف إلى نقاط الاجتماع</>}
+                </button>
+              </div>
+            </div>
           </div>
         </section>
 
