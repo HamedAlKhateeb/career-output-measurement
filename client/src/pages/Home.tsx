@@ -26,7 +26,15 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-type PathId = "math" | "mechanics" | "ai" | "software" | "product" | "content";
+type PathId = "math" | "mechanics" | "ai" | "software" | "product";
+
+type LearningStep = {
+  id: string;
+  label: string;
+  learn: string;
+  measure: string;
+  deliverable: string;
+};
 
 type Pathway = {
   id: PathId;
@@ -38,6 +46,7 @@ type Pathway = {
   minimumProject: string;
   transferable: string;
   criteria: { id: string; label: string; detail: string; weight: string }[];
+  learning: LearningStep[];
   nextMove: string;
 };
 
@@ -73,6 +82,11 @@ const PATHWAYS: Pathway[] = [
       { id: "artifact", label: "ملف بحثي أو عرض", detail: "PDF أو مستودع يشرح المسألة والخطوة التالية.", weight: "قابل للعرض" },
       { id: "mentor", label: "مراجعة أكاديمية", detail: "تعليق من مشرف أو أستاذ على الفكرة.", weight: "تحقق" },
     ],
+    learning: [
+      { id: "weak-form", label: "01 / الأساس الرياضي", learn: "الـweak form، شروط الحدود، ومعنى L2 error في مسألة elliptic بسيطة.", measure: "اشتق weak form بنفسك ثم حل 1D Poisson مع solution تحليلي وL2 error أقل من 5% على شبكة معقولة.", deliverable: "صفحتان اشتقاق + notebook أو ملف كود مع رسم الحل والخطأ." },
+      { id: "convergence", label: "02 / التحقق العددي", learn: "mesh refinement وconvergence rate وكيف تقرأ error–DoF plot.", measure: "شغّل ثلاث درجات شبكة على الأقل، وارسم الخطأ مقابل عدد درجات الحرية واشرح النتيجة في 150 كلمة.", deliverable: "منحنى تقارب موثق وREADME قصير." },
+      { id: "research-project", label: "03 / بوابة المشروع", learn: "صياغة سؤال بحثي صغير وربط solver بـbenchmark أو ورقة مرجعية.", measure: "أعد إنتاج benchmark واحد أو نتيجة منشورة، ثم غيّر عاملًا واحدًا فقط مثل coefficient أو geometry أو error indicator.", deliverable: "مستودع مشروع + صفحة مقارنة + سؤال thesis قابل للنقاش." },
+    ],
     nextMove: "ثبّت سؤالًا واحدًا يمكن أن يصبح thesis أو proposal.",
   },
   {
@@ -89,6 +103,11 @@ const PATHWAYS: Pathway[] = [
       { id: "solver", label: "Solver قابل للتشغيل", detail: "Python/FEniCS أو أداة مناسبة مع خطوات التشغيل.", weight: "تنفيذي" },
       { id: "validation", label: "تحقق أو مقارنة", detail: "حل تحليلي مبسط، baseline أو convergence study.", weight: "موثوقية" },
       { id: "report", label: "نتيجة قابلة للقراءة", detail: "README + رسمين + قرار تقني واضح.", weight: "قابل للعرض" },
+    ],
+    learning: [
+      { id: "mechanics-base", label: "01 / الميكانيكا الأساسية", learn: "small strain، plane stress/plane strain، وشروط الحدود في elasticity أو heat transfer.", measure: "اشرح اختيارك لحالة plane stress أو plane strain، ثم احسب benchmark cantilever أو plate/heat بسيطًا وقارن quantity واحدة بمرجع معروف ضمن 5–10%.", deliverable: "مذكرة قرار فيزيائي + رسم displacement/temperature." },
+      { id: "fem-workflow", label: "02 / سير عمل FEM", learn: "mesh، material model، boundary conditions، وpost-processing في Python/FEniCS أو الأداة المختارة.", measure: "شغّل النموذج بثلاث كثافات mesh، وبيّن أن quantity of interest لا تتغير بصورة جوهرية بعد مستوى refinement محدد.", deliverable: "ملف تشغيل قابل للتكرار + جدول mesh convergence." },
+      { id: "mechanics-project", label: "03 / بوابة المشروع", learn: "تحديد تجربة عددية لها قرار هندسي، لا مجرد visualisation.", measure: "اختر parameter واحدًا أو geometry واحدًا، أنشئ 6 حالات تشغيل على الأقل، وقدّم recommendation قائمة على النتيجة والقيود.", deliverable: "case study من 4 صفحات أو README مع figures وقرار هندسي." },
     ],
     nextMove: "اختر مسألة صغيرة تنتهي خلال 3 أسابيع، لا مشروع محاكاة شامل.",
   },
@@ -107,6 +126,11 @@ const PATHWAYS: Pathway[] = [
       { id: "metric", label: "مقياس واحد مفهوم", detail: "Accuracy أو MAE أو F1 مع تفسير للسياق.", weight: "قابل للقياس" },
       { id: "story", label: "قصة قرار", detail: "ماذا تعلمت؟ وما القرار الذي تغيّر بسبب النموذج؟", weight: "منتجي" },
     ],
+    learning: [
+      { id: "data-foundation", label: "01 / دورة البيانات", learn: "تنظيف البيانات، train/validation/test split، data leakage، وbaseline بسيط.", measure: "خذ dataset واحدًا موثقًا، أنشئ data dictionary صغيرًا، وابنِ baseline قبل أي نموذج متقدم مع metric واحدة معلنة.", deliverable: "notebook نظيف + baseline metric + وصف بيانات." },
+      { id: "ml-evaluation", label: "02 / تقييم النموذج", learn: "اختيار metric، cross-validation أو holdout، error analysis، والفرق بين performance وbusiness value.", measure: "قارن baseline بنموذج ثانٍ، ثم اعرض جدولًا يشرح لماذا تحسن أو لم يتحسن، مع فحص خطأ واحد على الأقل.", deliverable: "جدول مقارنة + 3 أمثلة أخطاء أو residual plot." },
+      { id: "ai-project", label: "03 / بوابة المشروع", learn: "تحويل النموذج إلى مشروع قرار أو مشروع هندسي صغير.", measure: "اكتب سؤالًا محددًا، success threshold مسبقًا، وقرارًا كان سيتغير لو حقق النموذج هذا الحد.", deliverable: "project brief + رابط notebook/repo + صفحة نتائج." },
+    ],
     nextMove: "استخدم بيانات صغيرة ونظيفة؛ المقياس الواضح أهم من حجم النموذج.",
   },
   {
@@ -123,6 +147,11 @@ const PATHWAYS: Pathway[] = [
       { id: "repo", label: "مستودع منظم", detail: "README، إعداد تشغيل، وترخيص بسيط إن لزم.", weight: "قابل للفحص" },
       { id: "test", label: "اختبار أو تحقق", detail: "اختبار unit واحد أو تحقق واضح من المخرج.", weight: "جودة" },
       { id: "demo", label: "عرض قصير", detail: "GIF أو screenshot أو مثال API موثق.", weight: "قابل للعرض" },
+    ],
+    learning: [
+      { id: "python-workflow", label: "01 / أساس الأداة", learn: "functions، data structures، NumPy/Pandas، plotting، وإدارة بيئة تشغيل واضحة.", measure: "اكتب script أو package صغيرًا يأخذ input من ملف ويخرج نتيجة أو رسمًا، ويعمل من بيئة نظيفة بخطوتي تشغيل فقط.", deliverable: "CLI أو script + requirements + example input/output." },
+      { id: "quality-workflow", label: "02 / قابلية الصيانة", learn: "Git، تنظيم المشروع، exception handling، وtest بسيط لما يهم المستخدم.", measure: "أضف test واحدًا ناجحًا، وتحققًا من input غير صالح، وREADME يشرح من هو المستخدم وما المشكلة التي تحلها الأداة.", deliverable: "repository منظم + test + README." },
+      { id: "software-project", label: "03 / بوابة المشروع", learn: "تحويل الكود إلى أداة تستخدم أو تُعرض، لا مجرد ملف تجربة.", measure: "قدّم ثلاث user flows أو أمثلة استخدام حقيقية، مع screenshot أو demo واحد يثبت النتيجة من البداية للنهاية.", deliverable: "مستودع قابل للعرض + demo + issue/roadmap واحد." },
     ],
     nextMove: "ابنِ أداة صغيرة يستخدمها شخص آخر، لا clone لتطبيق كبير.",
   },
@@ -141,24 +170,12 @@ const PATHWAYS: Pathway[] = [
       { id: "metric", label: "مقياس سلوك", detail: "Activation، completion أو retention حسب السياق.", weight: "قابل للقياس" },
       { id: "decision", label: "قرار موثق", detail: "ماذا أبقيت أو أوقفت أو غيّرت؟", weight: "أثر" },
     ],
-    nextMove: "اختر feature واحدة في عملك الحالي يمكن أن يصبح لها case study منضبط.",
-  },
-  {
-    id: "content",
-    title: "التواصل التقني",
-    eyebrow: "Technical Content",
-    color: "rose",
-    icon: PenLine,
-    purpose: "استخدام خبرة المحتوى كدليل مهني دولي، لا كخبرة عامة غير موصوفة.",
-    minimumProject: "قطعة تقنية إنجليزية أو عربية متخصصة: شرح مفهوم علمي/منتجي، مثال أو رسم، ومصدران موثوقان.",
-    transferable: "يخدم Technical Writing، Research Communication، Developer Education وProduct Marketing.",
-    criteria: [
-      { id: "audience", label: "جمهور محدد", detail: "لمن تكتب؟ وما الذي يعرفه مسبقًا؟", weight: "أساسي" },
-      { id: "source", label: "مصدران موثوقان", detail: "ورقة، وثائق رسمية أو تجربة أصلية.", weight: "مصداقية" },
-      { id: "artifact", label: "مخرج منشور", detail: "رابط أو PDF منسق أو صفحة portfolio.", weight: "قابل للعرض" },
-      { id: "signal", label: "إشارة أثر", detail: "مراجعة، feedback، أو استخدام فعلي للمادة.", weight: "تحقق" },
+    learning: [
+      { id: "problem-evidence", label: "01 / دليل المشكلة", learn: "Problem framing، user segment، وفرق الإشارة عن الرأي الشخصي.", measure: "وثّق ثلاث إشارات فعلية على الأقل: ملاحظات مقابلات حقيقية، تذاكر دعم، analytics، أو feedback موجود بالفعل؛ لا تُنشئ بيانات وهمية.", deliverable: "problem brief من صفحة واحدة مع مصادر الإشارات." },
+      { id: "experiment-design", label: "02 / قرار قابل للاختبار", learn: "hypothesis، metric، success threshold، ومتى تتوقف التجربة.", measure: "اكتب فرضية بصيغة إذا/فإن، metric واحدة، وعتبة نجاح قبل التنفيذ، ثم اربطها بقرار محدد: build، iterate، أو stop.", deliverable: "experiment card أو PRD مختصر." },
+      { id: "product-project", label: "03 / بوابة المشروع", learn: "تحويل العمل إلى case study مهنية دون كشف معلومات حساسة.", measure: "وثّق قرارًا حقيقيًا أو تجربة محدودة: ما المشكلة، ما الدليل، ماذا جُرّب، وما النتيجة أو التعلم، مع إخفاء أي بيانات داخلية.", deliverable: "case study من 2–4 صفحات أو عرض مختصر." },
     ],
-    nextMove: "اكتب قطعة واحدة متخصصة تربط الرياضيات أو AI بمشكلة عملية.",
+    nextMove: "اختر feature واحدة في عملك الحالي يمكن أن يصبح لها case study منضبط.",
   },
 ];
 
@@ -246,6 +263,10 @@ function scoreForPath(path: Pathway, checked: Record<string, boolean>) {
   return Math.round((path.criteria.filter((item) => checked[`${path.id}.${item.id}`]).length / path.criteria.length) * 100);
 }
 
+function learningScoreForPath(path: Pathway, checked: Record<string, boolean>) {
+  return Math.round((path.learning.filter((item) => checked[`${path.id}.${item.id}`]).length / path.learning.length) * 100);
+}
+
 function statusFor(score: number) {
   if (score === 100) return { label: "جاهز للعرض", className: "status-ready" };
   if (score >= 50) return { label: "قيد البناء", className: "status-growing" };
@@ -271,6 +292,7 @@ export default function Home() {
   const [selectedId, setSelectedId] = useState<PathId>("math");
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [learningChecked, setLearningChecked] = useState<Record<string, boolean>>({});
   const [selectedTopicId, setSelectedTopicId] = useState("t1");
   const [meetingTopics, setMeetingTopics] = useState<Record<string, boolean>>({});
   const [hydrated, setHydrated] = useState(false);
@@ -283,12 +305,14 @@ export default function Home() {
           selectedId?: PathId;
           checked?: Record<string, boolean>;
           notes?: Record<string, string>;
+          learningChecked?: Record<string, boolean>;
           selectedTopicId?: string;
           meetingTopics?: Record<string, boolean>;
         };
         if (parsed.selectedId) setSelectedId(parsed.selectedId);
         if (parsed.checked) setChecked(parsed.checked);
         if (parsed.notes) setNotes(parsed.notes);
+        if (parsed.learningChecked) setLearningChecked(parsed.learningChecked);
         if (parsed.selectedTopicId) setSelectedTopicId(parsed.selectedTopicId);
         if (parsed.meetingTopics) setMeetingTopics(parsed.meetingTopics);
       }
@@ -301,8 +325,8 @@ export default function Home() {
 
   useEffect(() => {
     if (!hydrated) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ selectedId, checked, notes, selectedTopicId, meetingTopics }));
-  }, [selectedId, checked, notes, selectedTopicId, meetingTopics, hydrated]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ selectedId, checked, notes, learningChecked, selectedTopicId, meetingTopics }));
+  }, [selectedId, checked, notes, learningChecked, selectedTopicId, meetingTopics, hydrated]);
 
   const selected = PATHWAYS.find((path) => path.id === selectedId) ?? PATHWAYS[0];
   const selectedScore = scoreForPath(selected, checked);
@@ -312,13 +336,20 @@ export default function Home() {
   const overall = Math.round((completedCount / allCount) * 100);
   const nextCriterion = selected.criteria.find((item) => !checked[`${selected.id}.${item.id}`]);
   const activePaths = PATHWAYS.filter((path) => scoreForPath(path, checked) > 0).length;
+  const selectedLearningScore = learningScoreForPath(selected, learningChecked);
+  const selectedLearningCompleted = selected.learning.filter((item) => learningChecked[`${selected.id}.${item.id}`]).length;
+  const learningGate = selectedLearningCompleted === 3
+    ? "جاهز لتحويل المخرج إلى مشروع قابل للعرض"
+    : selectedLearningCompleted === 2
+      ? "يمكنك بدء نسخة تجريبية صغيرة؛ لا توسع النطاق بعد"
+      : "أكمل محطتين تعلم على الأقل قبل بدء مشروع كبير";
   const selectedTopic = RESEARCH_TOPICS.find((topic) => topic.id === selectedTopicId) ?? RESEARCH_TOPICS[0];
   const selectedMeetingCount = Object.values(meetingTopics).filter(Boolean).length;
 
   const measure = useMemo(
     () => [
       { label: "الأدلة المكتملة", value: `${completedCount}/${allCount}`, icon: FileCheck2 },
-      { label: "الفروع النشطة", value: `${activePaths}/6`, icon: Layers3 },
+      { label: "الفروع النشطة", value: `${activePaths}/${PATHWAYS.length}`, icon: Layers3 },
       { label: "الجاهزية الكلية", value: `${overall}%`, icon: Gauge },
     ],
     [activePaths, completedCount, overall, allCount],
@@ -329,9 +360,15 @@ export default function Home() {
     setChecked((current) => ({ ...current, [key]: !current[key] }));
   };
 
+  const toggleLearningItem = (stepId: string) => {
+    const key = `${selected.id}.${stepId}`;
+    setLearningChecked((current) => ({ ...current, [key]: !current[key] }));
+  };
+
   const resetProgress = () => {
     setChecked({});
     setNotes({});
+    setLearningChecked({});
     setSelectedId("math");
     setMeetingTopics({});
     setSelectedTopicId("t1");
@@ -457,7 +494,7 @@ export default function Home() {
           </div>
           <div className="route-map">
             <div className="route-base"><span>القاعدة</span><strong>Applied Mathematics<br />+ العمل الحالي</strong></div>
-            <div className="route-lines" aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
+            <div className="route-lines" aria-hidden="true"><i /><i /><i /><i /><i /></div>
             <div className="route-nodes">
               {PATHWAYS.map((path) => {
                 const Icon = path.icon;
@@ -567,6 +604,39 @@ export default function Home() {
             <article><span>02</span><h4>ضع حدًا أدنى</h4><p>اجعل أول نسخة صغيرة بما يكفي لتنتهي، لكنها حقيقية بما يكفي لأن يعرضها شخص آخر.</p></article>
             <article><span>03</span><h4>وثّق الدليل</h4><p>رابط، README، PDF، رسم، أو case study. ما لا يمكن عرضه لا يُحسب جاهزية كاملة.</p></article>
             <article><span>04</span><h4>راجع قابلية النقل</h4><p>اسأل: هل يخدم هذا المخرج أكثر من فرع؟ إن لم يفعل، فهل يبرر وقته؟</p></article>
+          </div>
+        </section>
+
+        <section className="learning-ladder-section" id="learning-ladder">
+          <div className="section-heading learning-heading">
+            <div>
+              <p className="eyebrow"><Target size={13} /> مقياس التعلم / {selected.eyebrow}</p>
+              <h3>متى يصبح ما تعلمته كافيًا لتبدأ مشروعًا؟</h3>
+            </div>
+            <div className="learning-readiness"><Ring value={selectedLearningScore} size={58} /><span><b>{selectedLearningCompleted}/3</b><small>{learningGate}</small></span></div>
+          </div>
+
+          <div className="learning-brief">
+            <div><span className="route-base-dot" /> تعلّم الأساس</div><i /><div><span className="route-evidence-dot" /> اختبره بدليل</div><i /><div><span className="route-decision-dot" /> افتح بوابة المشروع</div>
+          </div>
+
+          <div className="learning-steps">
+            {selected.learning.map((step, index) => {
+              const key = `${selected.id}.${step.id}`;
+              const isDone = Boolean(learningChecked[key]);
+              return (
+                <button className={`learning-step ${isDone ? "is-done" : ""}`} type="button" onClick={() => toggleLearningItem(step.id)} key={step.id}>
+                  <span className="learning-node">{isDone ? <Check size={16} strokeWidth={3} /> : String(index + 1).padStart(2, "0")}</span>
+                  <span className="learning-copy">
+                    <small>{step.label}</small>
+                    <strong>{step.learn}</strong>
+                    <em><Gauge size={14} /> <b>اختبار القياس:</b> {step.measure}</em>
+                    <span className="learning-deliverable"><FileCheck2 size={14} /> {step.deliverable}</span>
+                  </span>
+                  <span className="learning-toggle">{isDone ? "مكتمل" : "ضع علامة عند الإنجاز"}</span>
+                </button>
+              );
+            })}
           </div>
         </section>
 
