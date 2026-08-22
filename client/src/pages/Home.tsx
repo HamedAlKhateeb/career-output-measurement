@@ -258,6 +258,7 @@ const RESEARCH_TOPICS: ResearchTopic[] = [
 ];
 
 const STORAGE_KEY = "atlas-output-measurement-v1";
+const ASSET_BASE = "https://career-measu-gf3oremu.manus.space/manus-storage";
 
 function scoreForPath(path: Pathway, checked: Record<string, boolean>) {
   return Math.round((path.criteria.filter((item) => checked[`${path.id}.${item.id}`]).length / path.criteria.length) * 100);
@@ -382,7 +383,7 @@ export default function Home() {
     <div className="atlas-app" dir="rtl">
       <aside className="atlas-sidebar">
         <div className="brand-lockup">
-          <img src="/manus-storage/atlas-route-mark_d831064a.png" alt="رمز أطلس المسارات" className="brand-mark" />
+          <img src={`${ASSET_BASE}/atlas-route-mark_d831064a.png`} alt="رمز أطلس المسارات" className="brand-mark" />
           <div>
             <p className="brand-eyebrow">ATLAS / 01</p>
             <h1>أطلس المسارات</h1>
@@ -395,7 +396,7 @@ export default function Home() {
         </div>
 
         <div className="atlas-stamp" aria-label="ختم نظام الأطلس">
-          <img src="/manus-storage/atlas-route-mark_d831064a.png" alt="" />
+          <img src={`${ASSET_BASE}/atlas-route-mark_d831064a.png`} alt="" />
           <span>نظام قياس<br />المسارات</span>
         </div>
 
@@ -448,7 +449,7 @@ export default function Home() {
         </header>
 
         <section className="route-hero">
-          <img src="/manus-storage/atlas-hero_f225fbfa.png" alt="خلفية خريطة مسارات مجردة" />
+          <img src={`${ASSET_BASE}/atlas-hero_f225fbfa.png`} alt="خلفية خريطة مسارات مجردة" />
           <div className="hero-overlay" />
           <div className="hero-content">
             <div className="hero-chip"><Compass size={16} /> حالة الشجرة الآن</div>
@@ -530,7 +531,7 @@ export default function Home() {
             </div>
 
             <div className="minimum-project-card">
-              <img src="/manus-storage/route-milestones_2d1f5e61.png" alt="عقد مسار مجردة" />
+              <img src={`${ASSET_BASE}/route-milestones_2d1f5e61.png`} alt="عقد مسار مجردة" />
               <div className="minimum-copy">
                 <span className="eyebrow"><FlaskConical size={14} /> الحد الأدنى القابل للبناء</span>
                 <h4>{selected.minimumProject}</h4>
@@ -581,7 +582,7 @@ export default function Home() {
             </div>
 
             <div className="rubric-card">
-              <div className="rubric-image"><img src="/manus-storage/evidence-tiles_6d4becae.png" alt="رسم مجرد لأدلة المشروع" /></div>
+              <div className="rubric-image"><img src={`${ASSET_BASE}/evidence-tiles_6d4becae.png`} alt="رسم مجرد لأدلة المشروع" /></div>
               <p className="eyebrow">قاعدة القياس</p>
               <h4>لا تعتبره مشروعًا قبل وجود أربعة أشياء.</h4>
               <ul>
